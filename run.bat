@@ -166,4 +166,7 @@ echo.
 
 cd /d "%REPO_DIR%"
 "%PYTHON%" app.py
+
+:: Release directory handles so workspace can be deleted
+cd /d "%USERPROFILE%"
 pause

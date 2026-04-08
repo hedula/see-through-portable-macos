@@ -4,6 +4,7 @@ import sys
 import shutil
 import tempfile
 import re
+import atexit
 from datetime import datetime
 
 # 確保從專案根目錄執行
@@ -323,7 +324,15 @@ with gr.Blocks(title='See-through') as demo:
         outputs=[psd_output, preview_output, status_output]
     )
 
+def _cleanup():
+    """Release directory handles so workspace can be deleted after exit."""
+    try:
+        os.chdir(osp.expanduser('~'))
+    except Exception:
+        pass
+
 if __name__ == '__main__':
+    atexit.register(_cleanup)
     demo.launch(
         server_name='127.0.0.1',
         server_port=7860,
