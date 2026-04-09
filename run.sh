@@ -26,10 +26,19 @@ for cand in python3.13 python3.12 python3.11 python3.10 python3; do
     fi
   fi
 done
-# Homebrew keg-only installs are sometimes not default on PATH
+# Homebrew: PATH bin, or keg-only paths (python@3.12 is often not linked)
 if [[ -z "$SYS_PYTHON" ]]; then
-  for _p in /opt/homebrew/bin/python3.13 /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11 /opt/homebrew/bin/python3.10 \
-            /usr/local/bin/python3.13 /usr/local/bin/python3.12 /usr/local/bin/python3.11 /usr/local/bin/python3.10; do
+  for _p in \
+    /opt/homebrew/bin/python3.13 /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11 /opt/homebrew/bin/python3.10 \
+    /opt/homebrew/opt/python@3.13/bin/python3.13 \
+    /opt/homebrew/opt/python@3.12/bin/python3.12 \
+    /opt/homebrew/opt/python@3.11/bin/python3.11 \
+    /opt/homebrew/opt/python@3.10/bin/python3.10 \
+    /usr/local/bin/python3.13 /usr/local/bin/python3.12 /usr/local/bin/python3.11 /usr/local/bin/python3.10 \
+    /usr/local/opt/python@3.13/bin/python3.13 \
+    /usr/local/opt/python@3.12/bin/python3.12 \
+    /usr/local/opt/python@3.11/bin/python3.11 \
+    /usr/local/opt/python@3.10/bin/python3.10; do
     if _py_ok "$_p"; then
       SYS_PYTHON="$_p"
       break
@@ -41,8 +50,9 @@ if [[ -z "$SYS_PYTHON" ]]; then
   echo ""
   echo " ERROR: Python 3.10+ not found (your default python3 may be 3.9 from Xcode)."
   echo " Install a newer Python, for example:"
+  echo "   brew bundle        # in this repo: installs python@3.12 from Brewfile"
   echo "   brew install python@3.12"
-  echo " Then run this script again, or add Homebrew to PATH so python3.12 is available."
+  echo " Then run this script again (or: make run)."
   echo " https://www.python.org/downloads/"
   echo ""
   exit 1

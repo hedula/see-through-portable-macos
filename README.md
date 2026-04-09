@@ -53,17 +53,25 @@ A one-click portable launcher based on [See-through](https://github.com/shitagak
 
 ### macOS
 
-1. Clone or download this repository
-2. In Terminal: `cd` into the project folder and run:
+If you do not yet have Python 3.10+ (the system `python3` is often 3.9 from Xcode), install via Homebrew once:
 
 ```bash
-chmod +x run.sh   # first time only
-./run.sh
+cd /path/to/see-through-portable-macos
+brew bundle              # installs python@3.12 from Brewfile (needs Homebrew)
+make run                 # or ./run.sh
 ```
 
-3. First run creates `venv/`, installs PyTorch (Metal-capable build) and dependencies (~10-20 minutes)
-4. The browser should open the Gradio UI at `http://127.0.0.1:7860`
-5. Upload an image and click **Start Processing**
+Later, start from the project folder with `./run.sh` or `make run`.
+
+**Easier options**
+
+| Method | What it does |
+|--------|----------------|
+| **Double-click** `See-through.command` | Opens Terminal and runs `run.sh` (if blocked the first time: right-click → **Open**) |
+| **`make run`** | Same as `./run.sh`; ensures scripts are executable |
+| **Terminal** | `chmod +x run.sh` once, then `./run.sh` |
+
+First run creates `venv/`, installs a Metal-capable PyTorch and dependencies (~10-20 minutes). The browser should open Gradio at `http://127.0.0.1:7860`; upload an image and click **Start Processing**.
 
 If Apple Silicon memory is tight, lower **Resolution** and/or disable “Depth resolution same as layers” and use a smaller depth resolution (e.g. 720).
 

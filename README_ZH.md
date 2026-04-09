@@ -53,17 +53,25 @@
 
 ### macOS
 
-1. Clone 或下載本儲存庫
-2. 開啟「終端機」，`cd` 到專案目錄後執行：
+**若尚未安裝 Python 3.10+**（系統自帶的 `python3` 常為 3.9），建議用 Homebrew 一次裝好：
 
 ```bash
-chmod +x run.sh   # 僅第一次需要
-./run.sh
+cd /path/to/see-through-portable-macos
+brew bundle              # 依 Brewfile 安裝 python@3.12（需已安裝 Homebrew）
+make run                 # 或 ./run.sh
 ```
 
-3. 首次執行會建立 `venv/`、安裝支援 Metal 的 PyTorch 與依賴（約 10-20 分鐘）
-4. 瀏覽器應會開啟 Gradio，網址為 `http://127.0.0.1:7860`
-5. 上傳圖片後點擊「開始處理」
+之後若要啟動，在專案目錄執行 `./run.sh` 或 `make run` 即可。
+
+**更省事的方式**
+
+| 方式 | 說明 |
+|------|------|
+| **雙擊** `See-through.command` | 會開終端機並執行 `run.sh`（首次若被 macOS 擋下：右鍵 → **打開**） |
+| **`make run`** | 等同 `./run.sh`，並確保腳本可執行 |
+| **終端機** | `chmod +x run.sh`（僅第一次）後執行 `./run.sh` |
+
+首次執行會建立 `venv/`、安裝支援 Metal 的 PyTorch 與依賴（約 10-20 分鐘）。瀏覽器應會開啟 Gradio（`http://127.0.0.1:7860`），上傳圖片後點「開始處理」。
 
 若 Apple Silicon 記憶體吃緊，請降低 **解析度**，或取消「深度解析度與圖層相同」並使用較低的深度解析度（例如 720）。
 
