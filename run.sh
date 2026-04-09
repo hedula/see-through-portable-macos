@@ -13,30 +13,42 @@ echo "========================================================================"
 echo ""
 
 echo "[1/4] Checking Python..."
+# Pick first interpreter that exists AND is >= 3.10 (avoid Xcode's python3 == 3.9).
+_py_ok() { [[ -x "$1" ]] && "$1" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; }
+
 SYS_PYTHON=""
-for cand in python3.12 python3.11 python3.10 python3; do
+for cand in python3.13 python3.12 python3.11 python3.10 python3; do
   if command -v "$cand" >/dev/null 2>&1; then
-    SYS_PYTHON="$(command -v "$cand")"
-    break
+    _p="$(command -v "$cand")"
+    if _py_ok "$_p"; then
+      SYS_PYTHON="$_p"
+      break
+    fi
   fi
 done
+# Homebrew keg-only installs are sometimes not default on PATH
+if [[ -z "$SYS_PYTHON" ]]; then
+  for _p in /opt/homebrew/bin/python3.13 /opt/homebrew/bin/python3.12 /opt/homebrew/bin/python3.11 /opt/homebrew/bin/python3.10 \
+            /usr/local/bin/python3.13 /usr/local/bin/python3.12 /usr/local/bin/python3.11 /usr/local/bin/python3.10; do
+    if _py_ok "$_p"; then
+      SYS_PYTHON="$_p"
+      break
+    fi
+  done
+fi
+
 if [[ -z "$SYS_PYTHON" ]]; then
   echo ""
-  echo " ERROR: Python 3 not found."
-  echo " Install Python 3.10+ from https://www.python.org/downloads/ or: brew install python@3.12"
+  echo " ERROR: Python 3.10+ not found (your default python3 may be 3.9 from Xcode)."
+  echo " Install a newer Python, for example:"
+  echo "   brew install python@3.12"
+  echo " Then run this script again, or add Homebrew to PATH so python3.12 is available."
+  echo " https://www.python.org/downloads/"
   echo ""
   exit 1
 fi
 
 PY_VER="$("$SYS_PYTHON" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-MAJOR="${PY_VER%%.*}"
-MINOR="${PY_VER#*.}"
-if [[ "$MAJOR" -lt 3 ]] || { [[ "$MAJOR" -eq 3 ]] && [[ "${MINOR:-0}" -lt 10 ]]; }; then
-  echo ""
-  echo " ERROR: Python $PY_VER is too old. Please install Python 3.10 or newer."
-  echo ""
-  exit 1
-fi
 echo "        Found Python $PY_VER at $SYS_PYTHON"
 
 echo "[2/4] Checking virtual environment..."
