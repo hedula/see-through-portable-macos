@@ -1,5 +1,7 @@
 # See-Through Portable — inference-only dependencies
-# PyTorch is installed separately (with CUDA) before this file.
+# PyTorch is installed separately before this file:
+#   Windows: CUDA wheels via run.bat
+#   macOS:   CPU+Metal (MPS) wheels via run.sh
 
 -e ./common
 -e ./annotators

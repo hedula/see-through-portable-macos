@@ -4,6 +4,8 @@
 
 基於 [See-through](https://github.com/shitagaki-lab/see-through) 專案（Apache 2.0 授權），製作成一鍵啟動的懶人包。
 
+**本儲存庫**（[hedula/see-through-portable-macos](https://github.com/hedula/see-through-portable-macos)）為 [iamtie34/see-through-portable](https://github.com/iamtie34/see-through-portable) 的分支，新增 **macOS 啟動腳本**（`run.sh`）、Apple Silicon 的 Metal（MPS）支援，以及程式內跨平台裝置選擇。上游 Windows 流程仍使用 `run.bat`。
+
 [English](README.md)
 
 ## 功能
@@ -23,19 +25,47 @@
 
 ## 系統需求
 
+### Windows（與上游相同）
+
 - **作業系統**：Windows 10 / 11
 - **Python**：3.10 以上（安裝時請勾選「Add Python to PATH」）
 - **顯示卡**：NVIDIA GPU，至少 8 GB VRAM
 - **NVIDIA 驅動**：建議安裝最新版本
 - **硬碟空間**：約 20 GB（含模型下載）
 
+### macOS（本分支）
+
+- **作業系統**：macOS 12.3 以上（Apple Silicon 會使用 Metal / MPS）
+- **Python**：3.10 以上（[python.org](https://www.python.org/downloads/) 或 Homebrew 的 `python3`）
+- **硬體**：強烈建議 Apple Silicon（M1／M2／M3…）— 推論使用 **Metal（MPS）** 與統一記憶體。Intel Mac 無 MPS，僅 CPU 不適合此工作負載。
+- **硬碟空間**：約 20 GB（含模型下載）
+- **說明**：介面中的 **Group Offload** 僅在 **NVIDIA CUDA**（Windows／Linux）生效；在 macOS 上會略過，避免在 MPS 上走不支援的 offload 路徑。
+
 ## 使用方式
+
+### Windows
 
 1. 從 [Releases](../../releases) 下載 zip 並解壓縮，或 clone 此專案
 2. 雙擊 `run.bat`
 3. 首次執行會自動建立虛擬環境並安裝所有依賴（約 10-20 分鐘）
 4. 瀏覽器會自動開啟 Gradio 介面
 5. 上傳圖片，點擊「Start Processing」即可
+
+### macOS
+
+1. Clone 或下載本儲存庫
+2. 開啟「終端機」，`cd` 到專案目錄後執行：
+
+```bash
+chmod +x run.sh   # 僅第一次需要
+./run.sh
+```
+
+3. 首次執行會建立 `venv/`、安裝支援 Metal 的 PyTorch 與依賴（約 10-20 分鐘）
+4. 瀏覽器應會開啟 Gradio，網址為 `http://127.0.0.1:7860`
+5. 上傳圖片後點擊「開始處理」
+
+若 Apple Silicon 記憶體吃緊，請降低 **解析度**，或取消「深度解析度與圖層相同」並使用較低的深度解析度（例如 720）。
 
 > [!WARNING]
 > 首次處理圖片時會自動下載模型（約 13 GB），之後不會重複下載。
@@ -53,11 +83,20 @@
 
 ### 使用 huggingface-cli
 
-先執行一次 `run.bat` 讓它建好虛擬環境，然後開啟命令提示字元：
+**Windows** — 先執行一次 `run.bat` 建好虛擬環境，再在命令提示字元中：
 
-```bash
+```bat
 cd 你的路徑\see-through-portable
 venv\Scripts\activate
+huggingface-cli download layerdifforg/seethroughv0.0.2_layerdiff3d --cache-dir models/hub
+huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models/hub
+```
+
+**macOS** — 在 `./run.sh` 已建立 venv 之後：
+
+```bash
+cd /path/to/see-through-portable-macos
+source venv/bin/activate
 huggingface-cli download layerdifforg/seethroughv0.0.2_layerdiff3d --cache-dir models/hub
 huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models/hub
 ```
@@ -100,8 +139,11 @@ huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models
 **Q: run.bat 一開就關掉了？**
 A: 對 run.bat 按右鍵 > 編輯，確認檔案編碼為 UTF-8 with BOM 或 ANSI。或直接在 cmd 中執行 `run.bat` 查看錯誤訊息。
 
-**Q: 出現「No NVIDIA GPU with CUDA detected」？**
+**Q: 出現「No NVIDIA GPU with CUDA detected」？**（Windows）
 A: 請確認已安裝最新的 NVIDIA 驅動程式。本工具不支援 AMD 顯卡。
+
+**Q: macOS／Apple Silicon 記憶體不足或很慢？**
+A: 請降低**解析度**、降低**深度解析度**，並保持 **Cache Tag Embeddings** 開啟。統一記憶體與系統共用，請關閉其他吃記憶體的程式。**Group Offload** 在 macOS 上無法使用（此建置僅支援 CUDA）。
 
 **Q: 安裝依賴時出現 C++ 編譯器錯誤？**
 A: 請安裝 [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)。

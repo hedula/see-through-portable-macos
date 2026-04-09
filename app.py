@@ -24,7 +24,9 @@ warnings.filterwarnings('ignore', category=UserWarning, module='huggingface_hub'
 
 print('Loading PyTorch...', end='', flush=True)
 import torch
-print(f'        done (CUDA: {torch.cuda.is_available()})')
+from utils.device_utils import get_inference_device
+_dev = get_inference_device()
+print(f'        done (inference device: {_dev})')
 
 print('Loading Gradio...', end='', flush=True)
 import gradio as gr

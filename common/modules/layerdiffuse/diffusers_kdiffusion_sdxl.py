@@ -13,6 +13,7 @@ from diffusers.utils.outputs import BaseOutput
 from modules.layerdiffuse.vae import TransparentVAEDecoder, TransparentVAEEncoder, vae_encode
 from .layerdiff3d import UNetFrameConditionModel
 from utils.torch_utils import seed_everything, img2tensor, tensor2img
+from utils.device_utils import empty_accelerator_cache
 
 @dataclass
 class LayerdiffPipelineOutput(BaseOutput):
@@ -231,7 +232,7 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
             del self.text_encoder_2
             self.text_encoder = self.text_encoder_2 = torch.nn.Identity()
             gc.collect()
-            torch.cuda.empty_cache()
+            empty_accelerator_cache()
 
     def denoise_func(self, latents, add_text_embeds, add_time_ids, prompt_embeds, c_concat, num_inference_steps=50):
 

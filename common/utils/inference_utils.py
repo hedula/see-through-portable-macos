@@ -8,6 +8,7 @@ from modules.layerdiffuse.layerdiff3d import UNetFrameConditionModel
 from modules.marigold import MarigoldDepthPipeline
 from utils.cv import center_square_pad_resize, img_alpha_blending, smart_resize, validate_resolution
 from utils.torch_utils import seed_everything
+from utils.device_utils import get_inference_device, inference_dtype
 from utils.io_utils import json2dict, dict2json, load_parts, save_tmp_img, load_part, save_psd
 from utils.torchcv import cluster_inpaint_part
 
@@ -62,12 +63,14 @@ def apply_layerdiff(
                 layerdiff_pipeline.trans_vae.decoder.load_state_dict(td_sd)
                 print(f'load vae from {vae_ckpt}')
 
-        layerdiff_pipeline.vae.to(dtype=torch.bfloat16, device='cuda')
-        layerdiff_pipeline.trans_vae.to(dtype=torch.bfloat16, device='cuda')
-        layerdiff_pipeline.unet.to(dtype=torch.bfloat16, device='cuda')
-        layerdiff_pipeline.text_encoder.to(dtype=torch.bfloat16, device='cuda')
-        layerdiff_pipeline.text_encoder_2.to(dtype=torch.bfloat16, device='cuda')
-        if group_offload:
+        _dev = get_inference_device()
+        _dt = inference_dtype(_dev)
+        layerdiff_pipeline.vae.to(dtype=_dt, device=_dev)
+        layerdiff_pipeline.trans_vae.to(dtype=_dt, device=_dev)
+        layerdiff_pipeline.unet.to(dtype=_dt, device=_dev)
+        layerdiff_pipeline.text_encoder.to(dtype=_dt, device=_dev)
+        layerdiff_pipeline.text_encoder_2.to(dtype=_dt, device=_dev)
+        if group_offload and _dev == 'cuda':
             layerdiff_pipeline.enable_group_offload('cuda', num_blocks_per_group=1)
 
     pipeline = layerdiff_pipeline
@@ -192,9 +195,11 @@ def apply_marigold(srcp, pretrained: str, num_inference_steps=-1, seed=0, save_d
     if marigold_pipeline is None:
         unet = UNetFrameConditionModel.from_pretrained(pretrained, subfolder='unet')
         marigold_pipeline = MarigoldDepthPipeline.from_pretrained(pretrained, unet=unet)
-        marigold_pipeline.to(device='cuda', dtype=torch.bfloat16)
+        _dev = get_inference_device()
+        _dt = inference_dtype(_dev)
+        marigold_pipeline.to(device=_dev, dtype=_dt)
 
-        if group_offload:
+        if group_offload and _dev == 'cuda':
             marigold_pipeline.enable_group_offload('cuda', num_blocks_per_group=1)
 
     pipe = marigold_pipeline

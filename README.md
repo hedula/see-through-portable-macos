@@ -4,6 +4,8 @@ Upload a single anime character illustration to automatically decompose it into 
 
 A one-click portable launcher based on [See-through](https://github.com/shitagaki-lab/see-through) (Apache 2.0 License).
 
+**This repository** ([hedula/see-through-portable-macos](https://github.com/hedula/see-through-portable-macos)) is a fork of [iamtie34/see-through-portable](https://github.com/iamtie34/see-through-portable) with a **macOS launcher** (`run.sh`), Metal (MPS) support on Apple Silicon, and cross-platform device handling in code. The upstream Windows flow still uses `run.bat`.
+
 [繁體中文說明](README_ZH.md)
 
 ## Features
@@ -23,19 +25,47 @@ A one-click portable launcher based on [See-through](https://github.com/shitagak
 
 ## System Requirements
 
+### Windows (upstream-style)
+
 - **OS**: Windows 10 / 11
 - **Python**: 3.10 or above (check "Add Python to PATH" during installation)
 - **GPU**: NVIDIA GPU with at least 8 GB VRAM
 - **NVIDIA Driver**: Latest version recommended
 - **Disk Space**: ~20 GB (including model downloads)
 
+### macOS (this fork)
+
+- **OS**: macOS 12.3 or later (Metal / MPS is used on Apple Silicon)
+- **Python**: 3.10 or above (`python3` from [python.org](https://www.python.org/downloads/) or Homebrew)
+- **Hardware**: Apple Silicon (M1/M2/M3…) strongly recommended — inference runs on **Metal (MPS)** with unified memory. Intel Macs have no MPS; CPU-only is not practical for this workload.
+- **Disk Space**: ~20 GB (including model downloads)
+- **Note**: **Group Offload** in the UI is only applied on **NVIDIA CUDA** (Windows/Linux). On macOS it is ignored so the diffusers offload path does not run on MPS.
+
 ## Usage
+
+### Windows
 
 1. Download zip from [Releases](../../releases) and extract, or clone this repository
 2. Double-click `run.bat`
 3. First run will automatically create a virtual environment and install all dependencies (~10-20 minutes)
 4. Browser will automatically open the Gradio interface
 5. Upload an image and click "Start Processing"
+
+### macOS
+
+1. Clone or download this repository
+2. In Terminal: `cd` into the project folder and run:
+
+```bash
+chmod +x run.sh   # first time only
+./run.sh
+```
+
+3. First run creates `venv/`, installs PyTorch (Metal-capable build) and dependencies (~10-20 minutes)
+4. The browser should open the Gradio UI at `http://127.0.0.1:7860`
+5. Upload an image and click **Start Processing**
+
+If Apple Silicon memory is tight, lower **Resolution** and/or disable “Depth resolution same as layers” and use a smaller depth resolution (e.g. 720).
 
 > [!WARNING]
 > The first time you process an image, models will be downloaded automatically (~13 GB). They will not be re-downloaded afterward.
@@ -53,11 +83,20 @@ This project uses two HuggingFace models:
 
 ### Using huggingface-cli
 
-Run `run.bat` once to set up the virtual environment, then open a command prompt:
+**Windows** — run `run.bat` once, then in Command Prompt:
 
-```bash
+```bat
 cd your\path\see-through-portable
 venv\Scripts\activate
+huggingface-cli download layerdifforg/seethroughv0.0.2_layerdiff3d --cache-dir models/hub
+huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models/hub
+```
+
+**macOS** — after `./run.sh` has created the venv:
+
+```bash
+cd /path/to/see-through-portable-macos
+source venv/bin/activate
 huggingface-cli download layerdifforg/seethroughv0.0.2_layerdiff3d --cache-dir models/hub
 huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models/hub
 ```
@@ -100,8 +139,11 @@ Output files are located in the `workspace/layerdiff_output/` folder:
 **Q: run.bat closes immediately?**
 A: Right-click run.bat > Edit, check that the file encoding is UTF-8 with BOM or ANSI. Or run `run.bat` directly in cmd to see error messages.
 
-**Q: "No NVIDIA GPU with CUDA detected"?**
+**Q: "No NVIDIA GPU with CUDA detected"?** (Windows)
 A: Make sure you have the latest NVIDIA driver installed. AMD GPUs are not supported.
+
+**Q: macOS / Apple Silicon — out of memory or very slow?**
+A: Use a lower **Resolution**, lower **Depth Resolution**, and keep **Cache Tag Embeddings** on. Unified memory is shared; quit other heavy apps. **Group Offload** is not available on macOS (CUDA-only in this build).
 
 **Q: C++ compiler error during dependency installation?**
 A: Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).

@@ -58,6 +58,7 @@ from .util.image_util import (
 )
 from utils.torchcv import pad_rgb_torch
 from utils.torch_utils import img2tensor
+from utils.device_utils import empty_accelerator_cache
 
 
 def encode_rgb(vae, rgb_in: torch.Tensor, latent_scale_factor = 0.18215) -> torch.Tensor:
@@ -405,7 +406,7 @@ class MarigoldDepthPipeline(DiffusionPipeline):
             )
             target_pred_ls.append(target_pred_raw.detach())
         target_preds = torch.concat(target_pred_ls, dim=0)
-        torch.cuda.empty_cache()  # clear vram cache for ensembling
+        empty_accelerator_cache()  # clear vram cache for ensembling
 
         # ----------------- Test-time ensembling -----------------
         if ensemble_size > 1:
